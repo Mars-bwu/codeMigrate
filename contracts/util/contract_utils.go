@@ -1,12 +1,11 @@
 package util
 
 import (
-	"github.com/DSiSc/craft/types"
-	"github.com/DSiSc/evm-NG/common"
-	"github.com/DSiSc/evm-NG/common/hexutil"
-	"github.com/DSiSc/evm-NG/common/math"
-	"github.com/DSiSc/evm-NG/constant"
-	"github.com/DSiSc/statedb-NG/util"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/contracts/constant"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/sha3"
 	"math/big"
@@ -68,8 +67,8 @@ func extractDynamicTypeData(totalInput []byte, varIndex int) []byte {
 	offset, _ := math.ParseUint64(hexutil.Encode(totalInput[varIndex*constant.EvmWordSize : (varIndex+1)*constant.EvmWordSize]))
 	if offset >= uint64(len(totalInput)) {
 		// address type
-		addr := util.BytesToAddress(arrayByte20(totalInput, varIndex))
-		addrStr := util.AddressToHex(addr)
+		addr := types.BytesToAddress(arrayByte20(totalInput, varIndex))
+		addrStr := types.AddressToHex(addr)
 		return []byte(addrStr)
 	}
 	dataLen, _ := math.ParseUint64(hexutil.Encode(totalInput[offset : offset+constant.EvmWordSize]))
@@ -137,3 +136,4 @@ func arrayByte20(totalInput []byte, varIndex int) []byte {
 	addrByte := totalInput[offset : (varIndex+1)*constant.EvmWordSize]
 	return []byte(addrByte)
 }
+

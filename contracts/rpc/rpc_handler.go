@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/DSiSc/craft/log"
-	"github.com/DSiSc/craft/rlp"
-	"github.com/DSiSc/evm-NG/system/contract/Interaction"
-	"github.com/DSiSc/evm-NG/system/contract/util"
-	sutil "github.com/DSiSc/statedb-NG/util"
-	wtypes "github.com/DSiSc/wallet/core/types"
-	wutils "github.com/DSiSc/wallet/utils"
-	wcmn "github.com/DSiSc/web3go/common"
 	craft "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/contracts/Interaction"
+	transaction "github.com/ethereum/go-ethereum/contracts/types"
+	"github.com/ethereum/go-ethereum/contracts/util"
+	"github.com/ethereum/go-ethereum/core/types"
 	cutil "github.com/ethereum/go-ethereum/core/vm/util"
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/rlp"
+	wtypes "github.com/ethereum/go-ethereum/wallet/core/types"
+	wutils "github.com/ethereum/go-ethereum/wallet/utils"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -89,7 +89,7 @@ func ForwardFunds(toAddr string, amount uint64, payload string, chainFlag string
 	localBytes := cutil.HashToBytes(localHash)//**
 	targetBytes := cutil.HashToBytes(targetHash)//**
 
-	return err, wcmn.BytesToHex(localBytes), wcmn.BytesToHex(targetBytes),txstate
+	return err, util.BytesToHex(localBytes), util.BytesToHex(targetBytes),txstate
 }
 
 // GetCross Tx state
@@ -125,15 +125,15 @@ func GetTxState(txHash string, amount uint64, tmp string, chainFlag string) (err
 //没有进行跨链交互么
 func ReceiveFunds(to string, amount uint64, payload string, srcChainId uint64) (error, uint64){
 	//receive tx bytes, decode input
-	input := wcmn.HexToBytes(payload)
-	tx := new(craft.Transaction)
+	input := util.HexToBytes(payload)
+	tx := new(transaction.Transaction)
 	//没看见有给tx赋值的地方呀
 	// new用来分配内存
 	//**craft.Transaction？？一个结构体
 	if err := rlp.DecodeBytes(input, tx); err != nil {
 		//RLP的唯一目标就是解决结构体的编码问题
 		//https://www.cnblogs.com/baizx/p/6928622.html
-		ethTx := new(craft.ETransaction)
+		ethTx := new(transaction.ETransaction)
 		//tx := new(craft.Transaction)与ethTx := new(craft.ETransaction)----craft.Transaction与craft.ETransaction有啥区别？？？
 		//**craft.ETransaction
 		//ETransaction与Transaction有啥区别
@@ -158,12 +158,12 @@ func ReceiveFunds(to string, amount uint64, payload string, srcChainId uint64) (
 	contractAddr := "0x47c5e40890bce4a473a49d7501808b9633f29782"
 	//这个合约地址是谁的？？？？？
 	//**??
-	targetToInput := wcmn.BytesToHex(tx.Data.Payload)
-	txToAddr := sutil.AddressToHex(*tx.Data.Recipient)//Recipient收件人
+	targetToInput := util.BytesToHex(tx.Data.Payload)
+	txToAddr := types.AddressToHex(*tx.Data.Recipient)//Recipient收件人
 	//*tx.Data与tx.Data有啥区别
 	//以下两个对比
-	fromAddr := sutil.AddressToHex(craft.Address(from_))
-	txFromAddr := sutil.AddressToHex(*tx.Data.From)
+	fromAddr := types.AddressToHex(craft.Address(from_))
+	txFromAddr := types.AddressToHex(*tx.Data.From)
 	//verify args
 	//进行对比与传进来的值
 	if amount != tx.Data.Amount.Uint64() || contractAddr != txToAddr || fromAddr != txFromAddr || to != targetToInput{
@@ -214,7 +214,7 @@ func Handler(input []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Info("contract RPC method: %s", wcmn.BytesToHex(method))
+	log.Info("contract RPC method: %s", util.BytesToHex(method))
 	returns := rpcFunc.f.Call(args)    //把入参放入找到的方法并执行这个函数
 	return encodeResult(returns)
 }
